@@ -1,4 +1,4 @@
-import { IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonHeader, IonIcon, IonImg, IonInput, IonItem, IonLabel, IonLoading, IonModal, IonPage, IonRow, IonTitle, IonToast, IonToolbar, useIonViewDidEnter } from '@ionic/react'
+import { IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonHeader, IonIcon, IonImg, IonInput, IonItem, IonLabel, IonLoading, IonModal, IonPage, IonRow, IonSpinner, IonTitle, IonToast, IonToolbar, useIonViewDidEnter } from '@ionic/react'
 import { cameraOutline, chevronBack, chevronForward, imagesOutline } from 'ionicons/icons'
 import React, { useEffect, useRef, useState } from 'react'
 import { User } from '../components/interfaces/@entities'
@@ -11,6 +11,7 @@ import { useHistory } from 'react-router'
 import { faceapi } from '../Ai/faceApi';
 import FaceComparison from './FaceComparison'
 import { Dialog } from "@capacitor/dialog";
+import { storage } from '../firebase'
 
 
 const initialUser: User = {
@@ -38,13 +39,15 @@ const SignUp: React.FC = ({ }) => {
     const [confirmedPassword, setConfirmedPassword] = useState<string>("")
     const [photo, setPhoto] = useState<string>("")
     const [loading, setloading] = useState<boolean>(false)
+    const [loadingId, setloadingId] = useState<boolean>(false)
 
     //front and back Id_Image states
     const [frontId, setFrontId] = useState<string>("")
     const [frontFile, setFrontFile] = useState<File>()
     const [backId, setBackId] = useState<string>("")
+    const [backIdFile, setBackIdFile] = useState<File>()
 
-    //webcam state
+    //webcam statese
     const [showWebcam, setshowWebcam] = useState<boolean>(false)
 
     const [toastMessage, settoastMessage] = useState("")
@@ -52,6 +55,7 @@ const SignUp: React.FC = ({ }) => {
     const history = useHistory();
 
     async function faceApiVerifyIdFront(file: File) {
+        setloadingId(true)
         const image = await faceapi.bufferToImage(file) as HTMLImageElement
         const detection = await faceapi.detectSingleFace(image).withFaceLandmarks().withFaceDescriptor()
         if (!detection) {
@@ -59,6 +63,7 @@ const SignUp: React.FC = ({ }) => {
             return false;
         }
         console.log("detection", detection)
+        setloadingId(false)
         return true
     }
 
@@ -66,11 +71,11 @@ const SignUp: React.FC = ({ }) => {
     const submitInfo = (ev: any) => {
         ev.preventDefault()
         if (user.password !== confirmedPassword) {
-            Dialog.alert({ message:"Passwords do not match", title:"Password Mismatch"})
+            Dialog.alert({ message: "Passwords do not match", title: "Password Mismatch" })
             return
         }
-        if(!backId){
-            Dialog.alert({ message: "Please upload your back ID", title:"Invalid id"})
+        if (!backId) {
+            Dialog.alert({ message: "Please upload your back ID", title: "Invalid id" })
             return
         }
         if (!frontFile) {
@@ -83,23 +88,40 @@ const SignUp: React.FC = ({ }) => {
     }
 
     async function submitUserData(distance: number) {
-
+        const user_val = user;
         if (distance > 0.48) {
             Dialog.alert({ message: "Facial recognition does not match that of Id card", title: "Invalid id" })
             return
         }
-        
-        settoastMessage("Your Face matches Id Card");
-    
-        setloading(true)
-        await axios.post(backendEndPoints.sign_up, user).then(res => {
-            const responseData: SignUpResponse = res.data
-            if (responseData.status == 200) {
-                history.push("/summary")
-            }
-            alert(responseData.message)
-        }).catch(console.log)
 
+        settoastMessage("Your Face matches Id Card");
+
+        setloading(true)
+
+       try{
+        await Promise.all([storage.ref("identity-cards").child(user.email).child("front-id").put(frontFile!)
+        , storage.ref("identity-cards").child(user.email).child("back-id").put(backIdFile!)])
+        .then(async (results) => {
+            //get download urls
+            const url = await results[0].ref.getDownloadURL()
+            user_val.id_front = url
+            const url_1 = await results[1].ref.getDownloadURL()
+            user_val.id_back = url_1
+            console.log(user_val)
+            return true
+            // return await axios.post(backendEndPoints.sign_up, user).then(res => {
+            //     const responseData: SignUpResponse = res.data
+            //     if (responseData.status == 200) {
+            //         history.push("/summary")
+            //     }
+            //     alert(responseData.message)
+            // }).catch(console.log)
+
+        })
+       }catch(err){
+              console.log(err)
+         }
+       
         setloading(false)
     }
 
@@ -117,7 +139,7 @@ const SignUp: React.FC = ({ }) => {
                 </IonButtons>
             </IonToolbar>
             <IonContent>
-                <IonToast duration={1500} onDidDismiss={()=>settoastMessage("")} message={toastMessage} isOpen={!!toastMessage}></IonToast>
+                <IonToast duration={1500} onDidDismiss={() => settoastMessage("")} message={toastMessage} isOpen={!!toastMessage}></IonToast>
                 <br />
                 <br />
                 <br />
@@ -153,9 +175,9 @@ const SignUp: React.FC = ({ }) => {
                                         </IonItem>
                                         <IonItem onClick={() => { openImagePicker(setFrontId, setFrontFile, faceApiVerifyIdFront); }} lines="none" mode="md" button fill="outline" className='ion-padding-top' >
                                             <IonLabel>ID Card Front</IonLabel>
-                                            {frontId ? <IonImg slot="end" style={{ height: "50px" }} src={frontId} /> : <IonIcon icon={imagesOutline} slot="end" />}
+                                            {frontId ? <IonImg slot="end" style={{ height: "50px" }} src={frontId} /> : loadingId?<IonSpinner color="primary"/>:<IonIcon icon={imagesOutline} slot="end" />}
                                         </IonItem>
-                                        <IonItem onClick={() => { openImagePicker(setBackId, () => { }) }} lines="none" mode="md" button fill="outline" className='ion-padding-top' >
+                                        <IonItem onClick={() => { openImagePicker(setBackId, setBackIdFile) }} lines="none" mode="md" button fill="outline" className='ion-padding-top' >
                                             <IonLabel>ID Card Back</IonLabel>
                                             {backId ? <IonImg slot="end" style={{ height: "50px" }} src={backId} /> : <IonIcon icon={imagesOutline} slot="end" />}
                                         </IonItem>
@@ -181,7 +203,7 @@ const SignUp: React.FC = ({ }) => {
                         </IonCol>
                         <IonCol></IonCol>
                     </IonRow>
-                    {frontFile && <CameraModal isOpen={showWebcam} onDidDismiss={(distance) => { setshowWebcam(false); distance!=null && submitUserData(distance) }}
+                    {frontFile && <CameraModal isOpen={showWebcam} onDidDismiss={(distance) => { setshowWebcam(false); distance != null && submitUserData(distance) }}
                         frontId={frontFile}
                     ></CameraModal>}
 
@@ -304,10 +326,10 @@ async function GetCameraPhoto(vidRef: React.RefObject<HTMLVideoElement>, Capture
                             callBack(distance)
 
                         }
-                       
+
                     }
-                    else{
-                       Dialog.alert({ message: "No face detected",title:"Facial Recognition Error"})
+                    else {
+                        Dialog.alert({ message: "No face detected", title: "Facial Recognition Error" })
                         callBack(1);
                     }
 

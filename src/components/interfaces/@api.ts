@@ -30,3 +30,13 @@ export interface CashoutRequest{
     user_photo:string,
     id:string,
 }
+
+
+export interface GeoLocationReadableData{
+    lat:number,
+    lng:number,
+    city:string,
+    country:string,
+    flag:string,
+
+}

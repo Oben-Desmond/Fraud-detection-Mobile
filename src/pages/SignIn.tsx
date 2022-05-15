@@ -12,16 +12,6 @@ const SignIn: React.FC = ({ }) => {
     const [password, setPassword] = useState('')
 
 
-    //function gets user city from geocoords
-    const getUserCity = (lng: number, lat: number) => {
-        fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat},${lng}&key=${"7d18179936d94d0c8f8c207722735b16"}`)
-            .then(res => res.json())
-            .then(data => {
-                console.log(data)
-
-            }
-            )
-    }
 
     useEffect(() => {
 
