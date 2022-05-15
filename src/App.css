@@ -1,0 +1,23 @@
+.app-header{
+    padding:3px 10px;
+}
+
+ion-toolbar .dp-photo{
+    width: 40px;
+    height:40px
+}
+
+.auth-content ion-item{
+    margin-bottom: 13px;
+
+}
+.cashin-modal{
+    padding-top:20vh;
+    --background:transparent
+}
+
+.cashin-modal ion-header{
+}
+.cashin-modal ion-toolbar{
+    border-radius: 20px 20px 0 0;
+ }
