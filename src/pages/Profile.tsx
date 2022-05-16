@@ -1,19 +1,29 @@
 import { IonAvatar, IonBackButton, IonButton, IonButtons, IonChip, IonCol, IonContent, IonGrid, IonHeader, IonIcon, IonImg, IonInput, IonItem, IonLabel, IonPage, IonRow, IonTitle, IonToolbar } from '@ionic/react'
-import { calendarOutline, callOutline, cameraOutline, chevronForward, personOutline } from 'ionicons/icons'
-import React from 'react'
+import { calendarOutline, callOutline, cameraOutline, chevronForward, flagSharp, personOutline } from 'ionicons/icons'
+import React, { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router'
+import { User } from '../components/interfaces/@entities'
+import { updateUser } from '../components/States/User-state'
+import { UserStorage } from '../components/storageApi'
 import { photo } from './Summary'
 
 const Profile: React.FC = () => {
     // editing state
     const [editing, setEditing] = React.useState(false)
-       
-     const history = useHistory()
+    //user from selector
+    const user: User = useSelector((state: any) => state.user)
+
+    const history = useHistory()
+    //dispatch
+    const dispatch = useDispatch()
 
     //log out user
-    const logoutUser=()=>{
+    const logoutUser = () => {
         history.push("/sign-in")
     }
+    
+
     return (
         <IonPage>
             <IonToolbar style={{ padding: "0 13px" }}>
@@ -50,15 +60,19 @@ const Profile: React.FC = () => {
                             {!editing && <div>
                                 <IonToolbar>
                                     <IonIcon color="medium" size="large" className='ion-margin-end' icon={personOutline} slot="start"></IonIcon>
-                                    <IonLabel>Atemafack Tendem</IonLabel>
+                                    <IonLabel>{user.name}</IonLabel>
                                 </IonToolbar>
                                 <IonToolbar>
                                     <IonIcon color="medium" size="large" className='ion-margin-end' icon={calendarOutline} slot="start"></IonIcon>
-                                    <IonLabel>BirthDay</IonLabel>
+                                    <IonLabel>{user.email}</IonLabel>
                                 </IonToolbar>
                                 <IonToolbar>
                                     <IonIcon color="medium" size="large" className='ion-margin-end' icon={callOutline} slot="start"></IonIcon>
-                                    <IonLabel>+237 677 266 898</IonLabel>
+                                    <IonLabel>{user.phone}</IonLabel>
+                                </IonToolbar>
+                                <IonToolbar>
+                                    <IonIcon color="medium" size="large" className='ion-margin-end' icon={flagSharp} slot="start"></IonIcon>
+                                    <IonLabel>{user.country}</IonLabel>
                                 </IonToolbar>
 
                             </div>}
@@ -81,8 +95,8 @@ const Profile: React.FC = () => {
                                 </IonToolbar>
                                 <br />
                                 <IonToolbar>
-                                <IonButton slot="start" mode="ios" onClick={() => setEditing(false)} fill="solid" color="light" ><u>Cancel</u></IonButton>
-                                <IonButton slot="end" mode="ios" onClick={() => setEditing(false)} fill="solid" color="success" ><u>Save</u></IonButton>
+                                    <IonButton slot="start" mode="ios" onClick={() => setEditing(false)} fill="solid" color="light" ><u>Cancel</u></IonButton>
+                                    <IonButton slot="end" mode="ios" onClick={() => setEditing(false)} fill="solid" color="success" ><u>Save</u></IonButton>
                                 </IonToolbar>
                             </div>}
                         </IonCol>

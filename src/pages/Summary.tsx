@@ -1,6 +1,7 @@
 import { IonAvatar, IonButton, IonButtons, IonChip, IonCol, IonContent, IonHeader, IonIcon, IonImg, IonItem, IonItemDivider, IonLabel, IonNote, IonPage, IonRouterLink, IonRow, IonTitle, IonToolbar } from '@ionic/react';
+import axios from 'axios';
 import { fastFood, search } from 'ionicons/icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import CashinModal from '../components/CashinModal';
 import CashoutModal from '../components/CashoutModal';
@@ -12,9 +13,11 @@ export const photo = "https://miro.medium.com/max/1400/0*0fClPmIScV5pTLoE.jpg"
 
 const Summary: React.FC = () => {
 
-   const history = useHistory();
-    const [cash_in, setcash_in] = useState(false);
-    const [cash_out, setcash_out] = useState(false);
+  const history = useHistory();
+  const [cash_in, setcash_in] = useState(false);
+  const [cash_out, setcash_out] = useState(false);
+
+  
 
   return (
     <IonPage>
@@ -24,9 +27,9 @@ const Summary: React.FC = () => {
             <IonIcon icon={search}></IonIcon>
           </IonButton>
         </IonButtons>
-          <IonAvatar onClick={()=>history.push("/profile")} className='dp-photo' slot="end">
-            <IonImg src={photo}></IonImg>
-          </IonAvatar>
+        <IonAvatar onClick={() => history.push("/profile")} className='dp-photo' slot="end">
+          <IonImg src={photo}></IonImg>
+        </IonAvatar>
       </IonToolbar>
       <IonContent >
         <div className="ion-padding ion-text-center amount-section">
@@ -36,9 +39,9 @@ const Summary: React.FC = () => {
             <IonCol></IonCol>
             <IonCol> <IonButtons>
               <IonButton
-              onClick={() => {setcash_in(true)}}
-              color="primary" fill='solid'>Cash In</IonButton>
-              <IonButton onClick={() => {setcash_out(true)}} fill='solid' >Cash Out</IonButton>
+                onClick={() => { setcash_in(true) }}
+                color="primary" fill='solid'>Cash In</IonButton>
+              <IonButton onClick={() => { setcash_out(true) }} fill='solid' >Cash Out</IonButton>
             </IonButtons></IonCol>
             <IonCol></IonCol>
           </IonRow>
@@ -56,8 +59,8 @@ const Summary: React.FC = () => {
           }
         </IonToolbar>
       </IonContent>
-      <CashinModal isOpen={cash_in} onDidDismiss={()=>{setcash_in(false)}}></CashinModal>
-      <CashoutModal isOpen={cash_out} onDidDismiss={()=>{setcash_out(false)}}></CashoutModal>
+      <CashinModal isOpen={cash_in} onDidDismiss={() => { setcash_in(false) }}></CashinModal>
+      <CashoutModal isOpen={cash_out} onDidDismiss={() => { setcash_out(false) }}></CashoutModal>
     </IonPage>
   );
 };

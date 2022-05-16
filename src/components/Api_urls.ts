@@ -8,4 +8,5 @@ export const backendEndPoints={
     "payment":url+"/api/payment/", //payment interface required
     "cashin":url+"/api/cashin/", //cashin interface required
     "cashout":url+"/api/cashout/", //cashout interface required
+    "user":url+"/api/user/", //requires email
 }

@@ -1,4 +1,4 @@
-import { IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonHeader, IonIcon, IonImg, IonInput, IonItem, IonLabel, IonLoading, IonModal, IonPage, IonRow, IonSpinner, IonTitle, IonToast, IonToolbar, useIonViewDidEnter } from '@ionic/react'
+import { IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonHeader, IonIcon, IonImg, IonInput, IonItem, IonLabel, IonLoading, IonModal, IonPage, IonRow, IonSpinner, IonTitle, IonToast, IonToolbar, useIonViewDidEnter } from '@ionic/react'
 import { cameraOutline, chevronBack, chevronForward, imagesOutline } from 'ionicons/icons'
 import React, { useEffect, useRef, useState } from 'react'
 import { User } from '../components/interfaces/@entities'
@@ -6,13 +6,17 @@ import { Camera, CameraResultType, CameraSource } from "@capacitor/camera"
 import { Device } from "@capacitor/device";
 import axios from "axios";
 import { backendEndPoints } from '../components/Api_urls'
-import { SignUpResponse } from '../components/interfaces/@api'
+import { GeoLocationReadableData, SignUpResponse } from '../components/interfaces/@api'
 import { useHistory } from 'react-router'
 import { faceapi } from '../Ai/faceApi';
 import FaceComparison from './FaceComparison'
 import { Dialog } from "@capacitor/dialog";
-import { storage } from '../firebase'
-
+import { auth, storage } from '../firebase'
+import { getMinGeolocationData } from '../components/geolocation'
+import { Geolocation } from "@capacitor/geolocation";
+import { useDispatch, useSelector } from 'react-redux'
+import { selectUser, updateUser } from '../components/States/User-state'
+import { UserStorage } from '../components/storageApi'
 
 const initialUser: User = {
     email: 'obend678@gmail.com',
@@ -35,6 +39,10 @@ const SignUp: React.FC = ({ }) => {
 
     //user state
     const [user, setUser] = useState<User>({ ...initialUser })
+
+    const globalUser: User = useSelector(selectUser)
+
+
     //confirmed password state
     const [confirmedPassword, setConfirmedPassword] = useState<string>("")
     const [photo, setPhoto] = useState<string>("")
@@ -51,6 +59,30 @@ const SignUp: React.FC = ({ }) => {
     const [showWebcam, setshowWebcam] = useState<boolean>(false)
 
     const [toastMessage, settoastMessage] = useState("")
+
+    const dispatch = useDispatch()
+
+    const [alertMessage, setAlertMessage] = useState<string>("")
+    const [alertHeader, setalertHeader] = useState<string>("Authentication Error")
+
+
+    useEffect(() => {
+        if (!user.city || !user.country) {
+
+        }
+
+        //get user Geolocation coordinates using location browser api
+        Geolocation.getCurrentPosition().then(async (position) => {
+            const { latitude, longitude } = position.coords
+            const minGeoData: GeoLocationReadableData = await getMinGeolocationData(longitude, latitude)
+            setUser({ ...user, lat: minGeoData.lat + "", lng: minGeoData.lng + "", city: minGeoData.city, country: minGeoData.country })
+        }).catch((err: any) => {
+            setAlertMessage(err.message || err)
+        })
+
+
+    }, [])
+
 
     const history = useHistory();
 
@@ -98,30 +130,45 @@ const SignUp: React.FC = ({ }) => {
 
         setloading(true)
 
-       try{
-        await Promise.all([storage.ref("identity-cards").child(user.email).child("front-id").put(frontFile!)
-        , storage.ref("identity-cards").child(user.email).child("back-id").put(backIdFile!)])
-        .then(async (results) => {
-            //get download urls
-            const url = await results[0].ref.getDownloadURL()
-            user_val.id_front = url
-            const url_1 = await results[1].ref.getDownloadURL()
-            user_val.id_back = url_1
-            console.log(user_val)
-            return true
-            // return await axios.post(backendEndPoints.sign_up, user).then(res => {
-            //     const responseData: SignUpResponse = res.data
-            //     if (responseData.status == 200) {
-            //         history.push("/summary")
-            //     }
-            //     alert(responseData.message)
-            // }).catch(console.log)
+        try {
 
-        })
-       }catch(err){
-              console.log(err)
-         }
-       
+            await auth.createUserWithEmailAndPassword(user_val.email, user_val.password)
+
+            await Promise.all([storage.ref("identity-cards").child(user.email).child("front-id").put(frontFile!)
+                , storage.ref("identity-cards").child(user.email).child("back-id").put(backIdFile!)])
+                .then(async (results) => {
+                    //get download urls
+                    const url = await results[0].ref.getDownloadURL()
+                    user_val.id_front = url
+                    const url_1 = await results[1].ref.getDownloadURL()
+                    user_val.id_back = url_1
+                    console.log(user_val)
+
+                    return  axios.post(backendEndPoints.sign_up, user).then(res => {
+                        const responseData: SignUpResponse = res.data
+                        setAlertMessage("Successfully Created your Account")
+                        setalertHeader("Sign in Successful")
+                        alert(JSON.stringify(responseData))
+                        if (responseData.status == 200) {
+                            dispatch(updateUser(user_val))
+                            UserStorage.setUser(user_val)
+                            history.push("/summary")
+
+                        }
+
+
+                    }).catch((err: any) => {
+
+                        setAlertMessage(err.message || err)
+                    })
+
+
+                })
+        } catch (err: any) {
+
+            setAlertMessage(err.message || err)
+        }
+
         setloading(false)
     }
 
@@ -143,6 +190,7 @@ const SignUp: React.FC = ({ }) => {
                 <br />
                 <br />
                 <br />
+
                 <IonGrid>
                     <IonRow>
                         <IonCol></IonCol>
@@ -170,12 +218,12 @@ const SignUp: React.FC = ({ }) => {
                                         <IonItem fill="outline" >
                                             <IonLabel position="floating">Telephone</IonLabel>
                                             <IonInput
-                                                required value={user.phone} onIonChange={(e) => setUser({ ...user, phone: e.detail.value || "" })}
+                                                required value={+user.phone} onIonChange={(e) => setUser({ ...user, phone: e.detail.value || "" })}
                                                 type="tel"></IonInput>
                                         </IonItem>
                                         <IonItem onClick={() => { openImagePicker(setFrontId, setFrontFile, faceApiVerifyIdFront); }} lines="none" mode="md" button fill="outline" className='ion-padding-top' >
                                             <IonLabel>ID Card Front</IonLabel>
-                                            {frontId ? <IonImg slot="end" style={{ height: "50px" }} src={frontId} /> : loadingId?<IonSpinner color="primary"/>:<IonIcon icon={imagesOutline} slot="end" />}
+                                            {frontId ? <IonImg slot="end" style={{ height: "50px" }} src={frontId} /> : loadingId ? <IonSpinner color="primary" /> : <IonIcon icon={imagesOutline} slot="end" />}
                                         </IonItem>
                                         <IonItem onClick={() => { openImagePicker(setBackId, setBackIdFile) }} lines="none" mode="md" button fill="outline" className='ion-padding-top' >
                                             <IonLabel>ID Card Back</IonLabel>
@@ -208,35 +256,7 @@ const SignUp: React.FC = ({ }) => {
                     ></CameraModal>}
 
                 </IonGrid>
-                {/* <div>
-                    <div style={{ textAlign: 'center', padding: '10px' }}>
-                        {
-                            captureVideo && modelsLoaded ?
-                                <button onClick={closeWebcam} style={{ cursor: 'pointer', backgroundColor: 'green', color: 'white', padding: '15px', fontSize: '25px', border: 'none', borderRadius: '10px' }}>
-                                    Close Webcam
-                                </button>
-                                :
-                                <button onClick={startVideo} style={{ cursor: 'pointer', backgroundColor: 'green', color: 'white', padding: '15px', fontSize: '25px', border: 'none', borderRadius: '10px' }}>
-                                    Open Webcam
-                                </button>
-                        }
-                    </div>
-                    {
-                        captureVideo ?
-                            modelsLoaded ?
-                                <div>
-                                    <div style={{ display: 'flex', justifyContent: 'center', padding: '10px' }}>
-                                        <video ref={videoRef} height={videoHeight} width={videoWidth} onPlay={handleVideoOnPlay} style={{ borderRadius: '10px' }} />
-                                        <canvas ref={canvasRef} style={{ position: 'absolute' }} />
-                                    </div>
-                                </div>
-                                :
-                                <div>loading...</div>
-                            :
-                            <>
-                            </>
-                    }
-                </div> */}
+                <IonAlert isOpen={!!alertMessage} header={alertHeader} message={alertMessage} buttons={[{ text: "ok" }]}></IonAlert>
             </IonContent>
         </IonPage>
     )
@@ -395,3 +415,5 @@ const CameraModal: React.FC<{ isOpen: boolean, onDidDismiss: (distance: number |
         </IonModal>
     )
 }
+
+

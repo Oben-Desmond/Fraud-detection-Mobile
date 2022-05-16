@@ -7,7 +7,8 @@ export interface SignUpResponse{
 export interface TemplateResponse{
     message:string,
     status : number, 
-    header:string
+    header:string;
+    data?:any
 }
 
 export interface CashinRequest{

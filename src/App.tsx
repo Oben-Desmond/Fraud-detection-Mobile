@@ -43,66 +43,94 @@ import Profile from './pages/Profile';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import FaceComparison from './pages/FaceComparison';
+import { useEffect } from 'react';
+import { User } from './components/interfaces/@entities';
+import { selectUser, updateUser } from './components/States/User-state';
+import { UserStorage } from './components/storageApi';
+import { useDispatch, useSelector } from 'react-redux';
 
 setupIonicReact();
 
-const App: React.FC = () => (
-  <IonApp>
-    <IonReactRouter>
-      <IonTabs>
-        <IonRouterOutlet>
-          <Route exact path="/summary">
-            <Summary />
-          </Route>
-          <Route exact path="/payment">
-            <Payment />
-          </Route>
-          <Route path="/support">
-            <Support />
-          </Route><Route exact path="/notifications">
-            <Notifications />
-          </Route>
-          <Route path="/notifications/detail/:id">
-            <NotificationDetail />
-          </Route>
-          <Route path="/face">
-            <FaceComparison/>
-          </Route>
-          <Route path="/profile">
-            <Profile />
-          </Route>
+const App: React.FC = () => {
 
-          <Route exact path="/">
-            <Redirect to="/tab1" />
-          </Route>
-        </IonRouterOutlet>
-        <IonTabBar slot="bottom">
-          <IonTabButton tab="tab1" href="/summary">
-            <IonIcon icon={timeOutline} />
-            <IonLabel>Summary</IonLabel>
-          </IonTabButton>
-          <IonTabButton tab="tab2" href="/payment">
-            <IonIcon icon={paperPlaneOutline} />
-            <IonLabel>Payment</IonLabel>
-          </IonTabButton>
-          <IonTabButton tab="tab3" href="/support">
-            <IonIcon icon={personOutline} />
-            <IonLabel>Support</IonLabel>
-          </IonTabButton>
-          <IonTabButton tab="tab4" href="/notifications">
-            <IonIcon icon={notificationsOutline} />
-            <IonLabel>Notifications</IonLabel>
-          </IonTabButton>
-        </IonTabBar>
-      </IonTabs>
-      <Route path="/sign-in">
-        <SignIn />
-      </Route>
-      <Route path="/sign-up">
-        <SignUp />
-      </Route>
-    </IonReactRouter>
-  </IonApp>
-);
+  //user from selector
+  const user: User = useSelector(selectUser)
+
+  //dispatch
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+
+    if (!user.email) {
+      //get user info from storage
+      UserStorage.getUser().then((user: User | null) => {
+        if (user) {
+          dispatch(updateUser(user))
+        }
+      })
+    }
+
+  }, [])
+
+
+  return (
+    <IonApp>
+      <IonReactRouter>
+        <IonTabs>
+          <IonRouterOutlet>
+            <Route exact path="/summary">
+              <Summary />
+            </Route>
+            <Route exact path="/payment">
+              <Payment />
+            </Route>
+            <Route path="/support">
+              <Support />
+            </Route><Route exact path="/notifications">
+              <Notifications />
+            </Route>
+            <Route path="/notifications/detail/:id">
+              <NotificationDetail />
+            </Route>
+            <Route path="/face">
+              <FaceComparison />
+            </Route>
+            <Route path="/profile">
+              <Profile />
+            </Route>
+
+            <Route exact path="/">
+              <Redirect to="/tab1" />
+            </Route>
+          </IonRouterOutlet>
+          <IonTabBar slot="bottom">
+            <IonTabButton tab="tab1" href="/summary">
+              <IonIcon icon={timeOutline} />
+              <IonLabel>Summary</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="tab2" href="/payment">
+              <IonIcon icon={paperPlaneOutline} />
+              <IonLabel>Payment</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="tab3" href="/support">
+              <IonIcon icon={personOutline} />
+              <IonLabel>Support</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="tab4" href="/notifications">
+              <IonIcon icon={notificationsOutline} />
+              <IonLabel>Notifications</IonLabel>
+            </IonTabButton>
+          </IonTabBar>
+        </IonTabs>
+        <Route path="/sign-in">
+          <SignIn />
+        </Route>
+        <Route path="/sign-up">
+          <SignUp />
+        </Route>
+      </IonReactRouter>
+    </IonApp>
+  );
+}
 
 export default App;

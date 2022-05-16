@@ -23,7 +23,7 @@ export interface Transaction{
     amount: number;
     created_at: number;
     ref: string;
-    type: "send"|"receive"|"deposit"|"withdraw";
+    type: "transfer"|"deposit"|"withdraw";
     category:string;
     sender_photo:string;
     receiver_photo:string;
