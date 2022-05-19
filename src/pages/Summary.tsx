@@ -8,6 +8,7 @@ import { backendEndPoints } from '../components/Api_urls';
 import CashinModal from '../components/CashinModal';
 import CashoutModal from '../components/CashoutModal';
 import ExploreContainer from '../components/ExploreContainer';
+import { localImages } from '../components/images/images';
 import { Transaction, User } from '../components/interfaces/@entities';
 import { selectUser } from '../components/States/User-state';
 import './pages.css';
@@ -55,46 +56,52 @@ const Summary: React.FC = () => {
   return (
     <IonPage>
       <IonToolbar className="app-header">
-        <IonButtons>
-          <IonButton slot="start">
-            <IonIcon icon={search}></IonIcon>
-          </IonButton>
-        </IonButtons>
+         
+           <IonTitle>
+             Secure Pay
+           </IonTitle>
+         <IonImg slot="start" style={{width:"50px"}} src={localImages.logo}></IonImg>
         <IonAvatar onClick={() => history.push("/profile")} className='dp-photo' slot="end">
           <IonImg src={photo}></IonImg>
         </IonAvatar>
       </IonToolbar>
       <IonContent >
-        <div className="ion-padding ion-text-center amount-section">
-          <div
+        <IonRow>
+          <IonCol></IonCol>
+          <IonCol size="12" sizeMd="8" sizeLg='6'>
+            <div className="ion-padding ion-text-center amount-section">
+              <div
 
-          ><IonLabel>Account Balance</IonLabel></div>
-          <IonNote className="amount">{amount}</IonNote>
-          <small>FCFA</small>
-          
+              ><IonLabel>Account Balance</IonLabel></div>
+              <IonNote className="amount">{amount}</IonNote>
+              <small>FCFA</small>
+
               <IonToolbar className="ion-margin-vertical">
-                <IonButtons style={{ margin: "auto", display:"inline" }}>
+                <IonButtons style={{ margin: "auto", display: "inline" }}>
                   <IonButton
                     onClick={() => { setcash_in(true) }}
                     color="primary" fill='solid'>Cash In</IonButton>
                   <IonButton onClick={() => { setcash_out(true) }} fill='solid' >Cash Out</IonButton>
                 </IonButtons>
               </IonToolbar>
-            
-        </div>
-        <IonToolbar>
-          <IonItemDivider className='ion-margin-bottom'>
-            <IonLabel>Today's Transactions</IonLabel>
-          </IonItemDivider>
-          {transactions.map((trans, index) => {
-            return (
-              <TransactionSummaryCard transaction={trans} key={index} index={index}></TransactionSummaryCard>
-            )
-          })
 
-          }
-        </IonToolbar>
+            </div>
+            <IonToolbar>
+              <IonItemDivider className='ion-margin-bottom'>
+                <IonLabel>Today's Transactions</IonLabel>
+              </IonItemDivider>
+              {transactions.map((trans, index) => {
+                return (
+                  <TransactionSummaryCard transaction={trans} key={index} index={index}></TransactionSummaryCard>
+                )
+              })
 
+              }
+            </IonToolbar>
+
+          </IonCol>
+          <IonCol></IonCol>
+        </IonRow>
       </IonContent>
       <CashinModal isOpen={cash_in} onDidDismiss={() => { setcash_in(false) }}></CashinModal>
       <CashoutModal isOpen={cash_out} onDidDismiss={() => { setcash_out(false) }}></CashoutModal>

@@ -1,4 +1,4 @@
-import { IonAvatar, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonImg, IonItem, IonLabel, IonList, IonPage, IonRouterLink, IonTitle, IonToolbar } from '@ionic/react';
+import { IonAvatar, IonButton, IonButtons, IonCol, IonContent, IonHeader, IonIcon, IonImg, IonItem, IonLabel, IonList, IonPage, IonRouterLink, IonRow, IonTitle, IonToolbar } from '@ionic/react';
 import { callOutline, logoWhatsapp, mailOutline, peopleOutline, search } from 'ionicons/icons';
 import ExploreContainer from '../components/ExploreContainer';
 import { photo } from './Summary';
@@ -48,26 +48,33 @@ const Notifications: React.FC = () => {
                         <IonIcon icon={search}></IonIcon>
                     </IonButton>
                 </IonButtons>
-                    <IonAvatar onClick={()=>history.push("/profile")} className='dp-photo' slot="end">
-                        <IonImg src={photo}></IonImg>
-                    </IonAvatar>
+                <IonAvatar onClick={() => history.push("/profile")} className='dp-photo' slot="end">
+                    <IonImg src={photo}></IonImg>
+                </IonAvatar>
             </IonToolbar>
             <IonContent fullscreen>
-                <IonToolbar>
-                    <IonTitle>Notifications</IonTitle>
-                </IonToolbar>
-                <IonList>
-                    {
-                        [1, 1, 1, 1, 1, 1].map((notif, index) => {
-                            return (
-                                <NotificationCard key={index}></NotificationCard>
-                            )
-                        })
-                    }
-                </IonList>
+
+                <IonRow>
+                    <IonCol></IonCol>
+                    <IonCol size="12" sizeMd="6" sizeLg="5">
+                        <IonToolbar>
+                            <IonTitle>Notifications</IonTitle>
+                        </IonToolbar>
+                        <IonList>
+                            {
+                                [1, 1, 1, 1, 1, 1].map((notif, index) => {
+                                    return (
+                                        <NotificationCard key={index}></NotificationCard>
+                                    )
+                                })
+                            }
+                        </IonList>
+                    </IonCol>
+                    <IonCol></IonCol>
+                </IonRow>
 
             </IonContent>
-        </IonPage>
+        </IonPage >
     );
 };
 
@@ -97,4 +104,3 @@ function redirectToUrl(url: string) {
 }
 
 
- 

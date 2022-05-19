@@ -11,6 +11,9 @@ import './payment.css';
 import { photo } from './Summary';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../components/States/User-state';
+import { decodeQRFromImage, decodeQRFromVideoEl } from '../components/QRCode';
+
+
 
 const qr_image = "https://www.qr-code-generator.com/wp-content/themes/qr/new_structure/markets/core_market_full/generator/dist/generator/assets/images/websiteQRCode_noFrame.png"
 
@@ -22,15 +25,15 @@ const Payment: React.FC = () => {
   const vidRef = useRef<HTMLVideoElement>(null)
   const history = useHistory();
   // qr code state
-  const [qrCodeImage, setqrCodeImage]  = useState("")
-  const user : User = useSelector(selectUser)
+  const [qrCodeImage, setqrCodeImage] = useState("")
+  const user: User = useSelector(selectUser)
 
-  let receiver: User={
+  let receiver: User = {
     name: "",
     photo: "",
     email: "",
-    phone: "", 
-    city: "", 
+    phone: "",
+    city: "",
     country: "",
     created_at: 0,
     id_back: "",
@@ -43,14 +46,21 @@ const Payment: React.FC = () => {
 
   // get video feed from camera
   const getVideo = async () => {
+    if(!vidRef.current) return;
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
-        facingMode: 'user'
+        // facingMode: 'user'
+        facingMode: "environment"
+
+
       }
     })
     vidRef.current!.srcObject = stream
     vidRef.current!.play()
+    decodeQRFromVideoEl(vidRef.current!).then(res=>{
+      console.log(res.data)
+    })
   }
   // stop video feed
   const stopVideo = () => {
@@ -80,15 +90,16 @@ const Payment: React.FC = () => {
   }, [transferType])
 
   useEffect(() => {
-    QrCode.toDataURL(user.email,(err, url )=>{
-          setqrCodeImage(url)
-    })
-  },[])
-
-//initiate Payment
-   function initiatePayment(){
+    QrCode.toDataURL(user.email, (err, url) => {
+      setqrCodeImage(url)
      
-   }
+    })
+  }, [])
+
+  //initiate Payment
+  function initiatePayment() {
+
+  }
 
   return (
     <IonPage>
@@ -110,25 +121,27 @@ const Payment: React.FC = () => {
         </IonAvatar>
       </IonToolbar>
       <IonContent >
-        <div className=" content ion-padding">
-          {transferType == 'receive' ? <div className="center-content receiving ion-text-center">
-            <IonImg src={qrCodeImage}></IonImg>
+        <IonRow>
+          <IonCol></IonCol>
+          <IonCol size="12" sizeMd="6" sizeLg="4">
+            <div className=" content ion-padding">
+            {transferType == 'receive' ? <div className="center-content receiving ion-text-center">
+              <IonImg src={qrCodeImage}></IonImg>
 
-            <small><IonText color="primary">Currently receiving</IonText></small>
-          </div> :
-            <div className="center-content sending ion-text-center">
-              <video ref={vidRef} style={{ width: "100%", margin: "20px 0" }}></video>
-              <small><IonText color="primary">Currently receiving</IonText></small>
-            </div>}
-        </div>
-        <br />
-        <div className="ion-padding">
-          <IonButton onClick={()=>{setsendMoney(true)}} >
-            Done Scanning
-          </IonButton>
-        </div>
+              <small><IonText color="primary">SCAN QR Code with Sender's device</IonText></small>
+            </div> :
+              <div className="center-content sending ion-text-center">
+                <video ref={vidRef} style={{ width: "100%", margin: "20px 0" }}></video>
+                <small><IonText color="primary">Scan Receiver's QR Code</IonText></small>
+              </div>}
+          </div>
+            <br />
+            
+          </IonCol>
+          <IonCol></IonCol>
+        </IonRow>
       </IonContent>
-      <FinalizePayment receiver={receiver} onDidDismiss={()=>{setsendMoney(false)}} isOpen={sendMoney} ></FinalizePayment>
+      <FinalizePayment receiver={receiver} onDidDismiss={() => { setsendMoney(false) }} isOpen={sendMoney} ></FinalizePayment>
     </IonPage >
   );
 };
