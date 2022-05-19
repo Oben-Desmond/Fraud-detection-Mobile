@@ -1,4 +1,4 @@
-import { Redirect, Route } from 'react-router-dom';
+import { Redirect, Route, useHistory } from 'react-router-dom';
 import {
   IonApp,
   IonIcon,
@@ -55,6 +55,7 @@ const App: React.FC = () => {
 
   //user from selector
   const user: User = useSelector(selectUser)
+  const history = useHistory()
 
   //dispatch
   const dispatch = useDispatch()
@@ -66,6 +67,10 @@ const App: React.FC = () => {
       UserStorage.getUser().then((user: User | null) => {
         if (user) {
           dispatch(updateUser(user))
+          return
+        }
+        else{
+           history.push('/signin')
         }
       })
     }
@@ -100,7 +105,7 @@ const App: React.FC = () => {
             </Route>
 
             <Route exact path="/">
-              <Redirect to="/tab1" />
+              <Redirect to="/signin" />
             </Route>
           </IonRouterOutlet>
           <IonTabBar slot="bottom">

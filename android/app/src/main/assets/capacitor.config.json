@@ -1,0 +1,6 @@
+{
+	"appId": "com.secure.pay",
+	"appName": "Secure Pay",
+	"webDir": "build",
+	"bundledWebRuntime": false
+}

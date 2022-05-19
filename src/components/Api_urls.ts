@@ -1,6 +1,10 @@
 
 
-const url ="http://localhost:8000";
+let url ="http://localhost:8000";
+
+url = "http://192.168.43.45:8000"
+ 
+
 
 export const backendEndPoints={
     "sign_in":url+"/api/sign_in/", //email, password required
@@ -9,4 +13,7 @@ export const backendEndPoints={
     "cashin":url+"/api/cashin/", //cashin interface required
     "cashout":url+"/api/cashout/", //cashout interface required
     "user":url+"/api/user/", //requires email
+    "transactions":url+"/api/transactions/", //requires email
+    "balance":url+"/api/balance/", //requires email
+    "record-transaction":url+"/api/record-transaction/", //requires email
 }

@@ -4,10 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router';
 import { User } from '../components/interfaces/@entities';
 import FinalizePayment from './FinalizePayment';
+import QrCode from "qrcode";
 import './pages.css';
 
 import './payment.css';
 import { photo } from './Summary';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../components/States/User-state';
 
 const qr_image = "https://www.qr-code-generator.com/wp-content/themes/qr/new_structure/markets/core_market_full/generator/dist/generator/assets/images/websiteQRCode_noFrame.png"
 
@@ -18,6 +21,9 @@ const Payment: React.FC = () => {
   const [sendMoney, setsendMoney] = useState(false)
   const vidRef = useRef<HTMLVideoElement>(null)
   const history = useHistory();
+  // qr code state
+  const [qrCodeImage, setqrCodeImage]  = useState("")
+  const user : User = useSelector(selectUser)
 
   let receiver: User={
     name: "",
@@ -73,6 +79,12 @@ const Payment: React.FC = () => {
     }
   }, [transferType])
 
+  useEffect(() => {
+    QrCode.toDataURL(user.email,(err, url )=>{
+          setqrCodeImage(url)
+    })
+  },[])
+
 //initiate Payment
    function initiatePayment(){
      
@@ -100,7 +112,7 @@ const Payment: React.FC = () => {
       <IonContent >
         <div className=" content ion-padding">
           {transferType == 'receive' ? <div className="center-content receiving ion-text-center">
-            <IonImg src={"https://www.qr-code-generator.com/wp-content/themes/qr/new_structure/markets/core_market_full/generator/dist/generator/assets/images/websiteQRCode_noFrame.png"}></IonImg>
+            <IonImg src={qrCodeImage}></IonImg>
 
             <small><IonText color="primary">Currently receiving</IonText></small>
           </div> :

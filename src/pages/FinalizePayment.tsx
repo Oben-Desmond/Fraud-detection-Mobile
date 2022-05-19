@@ -30,7 +30,7 @@ const defaultTransaction: Transaction = {
     created_at: new Date().getTime(),
     id: "",
     ref: "",
-    type: "send",
+    type: "transfer",
     receiver_id: "",
     sender_id: "",
 }
@@ -68,7 +68,7 @@ const FinalizePayment: React.FC<{ isOpen: boolean, onDidDismiss: () => void, rec
             sender_id: client.email,
             id: uuid4(),
             ref,
-            type: 'send'
+            type: 'transfer'
         }
        try{
             //send transaction details to server
