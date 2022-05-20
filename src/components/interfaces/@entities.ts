@@ -29,5 +29,10 @@ export interface Transaction{
     receiver_photo:string;
     receiver_name:string;
     sender_name:string;
+    lat:string,
+    lng: string,
+    month: string;
+    day:string,
+    time:string
 
 }

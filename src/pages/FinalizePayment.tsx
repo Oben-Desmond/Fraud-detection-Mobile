@@ -33,6 +33,11 @@ const defaultTransaction: Transaction = {
     type: "transfer",
     receiver_id: "",
     sender_id: "",
+    day: (new Date()).getDay() + "",
+    month: (new Date()).getMonth() + "",
+    time: (new Date()).getTime() + "",
+    lat: "0",
+    lng: "0",
 }
 
 
@@ -41,7 +46,7 @@ const FinalizePayment: React.FC<{ isOpen: boolean, onDidDismiss: () => void, rec
     const [amount, setamount] = useState(100);
     const [category, setcategory] = useState("Food");
     const [ref, setref] = useState("");
-    let client: User=receiver;
+    let client: User = receiver;
 
     //function to initiate Payment
     const initiatePayment = async (ev: any) => {
@@ -68,24 +73,29 @@ const FinalizePayment: React.FC<{ isOpen: boolean, onDidDismiss: () => void, rec
             sender_id: client.email,
             id: uuid4(),
             ref,
-            type: 'transfer'
+            type: 'transfer',
+            day: (new Date()).getDay() + "",
+            month: (new Date()).getMonth() + "",
+            time: (new Date()).getHours() + "",
+            lat: client.lat,
+            lng: client.lng,
         }
-       try{
+        try {
             //send transaction details to server
-        const response = await (await axios.post(backendEndPoints.payment, transactionDetail)).data as TemplateResponse
-        
-        console.log(response)
+            const response = await (await axios.post(backendEndPoints.payment, transactionDetail)).data as TemplateResponse
 
-        if (response.status === 200) {
-            alert("Payment Initiated")
-            onDidDismiss()
+            console.log(response)
+
+            if (response.status === 200) {
+                alert("Payment Initiated")
+                onDidDismiss()
+            }
+            else {
+                alert("Payment Failed \n" + response.message)
+            }
+        } catch (err) {
+            alert("Payment Error\n" + err)
         }
-        else {
-            alert("Payment Failed \n" + response.message)
-        }
-       }catch(err){
-           alert("Payment Error\n" + err)
-       }
         setloading(false)
 
     }

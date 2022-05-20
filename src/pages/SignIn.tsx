@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useHistory } from 'react-router'
 import { backendEndPoints } from '../components/Api_urls'
+import { localImages } from '../components/images/images'
 import { TemplateResponse } from '../components/interfaces/@api'
 import { updateUser } from '../components/States/User-state'
 import { UserStorage } from '../components/storageApi'
@@ -48,7 +49,7 @@ const SignIn: React.FC = ({ }) => {
                     .then(res => {
                         const data = res.data as TemplateResponse
                         if (data.status === 200) {
-                           dispatch(updateUser(data.data))
+                           dispatch(updateUser({...data.data,photo:data.data.photo||localImages.profilePlaceholder}))
                             setalertHeader('Successful')
                             setalertMessage('You have successfully signed in')
                             setLoading(false)

@@ -9,16 +9,18 @@ import { defaultTransaction, operators } from './CashinModal';
 import { Transaction, User } from './interfaces/@entities';
 import { selectUser } from './States/User-state';
 
-const CashinModal: React.FC<{ isOpen: boolean, onDidDismiss: () => void }> = ({ isOpen, onDidDismiss }) => {
+const MoneyTransferModal: React.FC<{ isOpen: boolean, onDidDismiss: (success: boolean | null) => void, email: string, }> = ({ isOpen, onDidDismiss, email }) => {
     //form states
 
     const [transaction, settransaction] = useState<Transaction>(defaultTransaction)
     const user: User = useSelector(selectUser)
+    const [receiverInfo, setreceiverInfo] = useState<User>()
     // loading
     const [loadingImage, setloadingImage] = useState(false)
     const [loading, setloading] = useState(false)
     const [amount, setamount] = useState("")
     const imageRef = useRef<HTMLIonImgElement>(null)
+
 
     //initiate transaction
     async function initiateTransaction(ev: any) {
@@ -34,15 +36,20 @@ const CashinModal: React.FC<{ isOpen: boolean, onDidDismiss: () => void }> = ({ 
             alert("Please enter a valid amount")
             return
         }
-        const newTransaction: Transaction = {
+
+
+        let newTransaction: Transaction = {
             ...transaction,
             amount: +amount,
             created_at: Date.now(),
+            receiver_name: "",
+            receiver_photo: "",
+            receiver_id: email,
+            sender_id: user.email,
             sender_name: user.name,
             sender_photo: user.photo,
-            sender_id: user.email,
-            type: 'withdraw',
-            ref: "Withdrawal via " + transaction.receiver_id,
+            category: "Transfer",
+            type: 'transfer',
             day: (new Date()).getDay() + "",
             month: (new Date()).getMonth() + "",
             time: (new Date()).getHours() + "",
@@ -50,14 +57,41 @@ const CashinModal: React.FC<{ isOpen: boolean, onDidDismiss: () => void }> = ({ 
             lng: user.lng,
 
         }
-
-
         setloading(true)
+
+
+        // fetch user from database
+        if (!receiverInfo?.email) {
+            try {
+                const response = (await axios.post(backendEndPoints.user, { email }))
+                if (response.data.status == 200) {
+                    const receiver = response.data.data;
+
+                    newTransaction = {
+                        ...newTransaction,
+                        created_at: Date.now(),
+                        receiver_name: receiver.name,
+                        receiver_photo: receiver.photo,
+                        receiver_id: email,
+                    }
+                }
+            } catch (err: any) {
+                alert(err.message || err)
+            }
+        }
+ 
+        if(receiverInfo?.email==user.email){
+             alert("You can't send money to the same account")
+             setloading(false)
+             return;
+        }
+
         await axios.post(backendEndPoints["record-transaction"], {
             ...newTransaction
         }).then(res => {
             console.log(res)
             alert("Successfully sent")
+            onDidDismiss(true)
 
         }
         ).catch(err => {
@@ -72,44 +106,38 @@ const CashinModal: React.FC<{ isOpen: boolean, onDidDismiss: () => void }> = ({ 
 
     }
 
+ 
+ 
 
-    // change selected Operator
-    function changeOperator(operatorId: string) {
-        const operator = operators.find(operator => operator.code === operatorId)
-        if (operator)
-            settransaction({ ...transaction, receiver_id: operator.code, receiver_photo: operator.logo, receiver_name: operator.name });
-    }
-    useEffect(() => {
-        if (imageRef.current) {
-            imageRef.current.onloadstart = () => {
-                setloadingImage(true)
-            }
-            imageRef.current.onload = () => {
-                setloadingImage(false)
-            }
+    async function getReceiverInfo() {
+        const response = (await axios.post(backendEndPoints.user, { email }))
+
+
+        if (response.data.status == 200) {
+            const receiver = response.data.data;
+            // setreceiverInfo(receiver)
+            setreceiverInfo(receiver)
 
         }
-
-    }, [])
-
-    //verify if user exists from endpoint
-    function verifyUser(email: string) {
 
     }
 
     return (
-        <IonModal swipeToClose mode="ios" className='cashin-modal' isOpen={isOpen} onDidDismiss={() => onDidDismiss()}>
+        <IonModal onDidPresent={() => { getReceiverInfo() }} swipeToClose mode="ios" className='cashin-modal' isOpen={isOpen} onDidDismiss={() => onDidDismiss(null)}>
             <IonHeader >
                 <IonToolbar style={{ borderRadius: "20px 20px 0 0" }}>
-                    <IonTitle>Cash Out</IonTitle>
+                    <IonTitle>Send Money</IonTitle>
                     <IonButtons slot="end">
-                        <IonButton onClick={() => onDidDismiss()}>
+                        <IonButton onClick={() => onDidDismiss(null)}>
                             <IonIcon slot="icon-only" icon={close} />
                         </IonButton>
                     </IonButtons>
                 </IonToolbar>
             </IonHeader>
             <IonContent>
+                <div className="ion-text-center ion-padding">
+                    <IonLabel color="primary">Sending to <b>{receiverInfo?.name || ""}</b></IonLabel>
+                </div>
                 <form onSubmit={initiateTransaction}>
                     <IonCardContent>
                         <div className="ion-padding">
@@ -119,30 +147,18 @@ const CashinModal: React.FC<{ isOpen: boolean, onDidDismiss: () => void }> = ({ 
                                     onIonChange={(e) => setamount(e.detail.value!)} required
                                     value={amount} type="number" placeholder="Enter Amount" />
                             </IonItem>
+
                             <IonItem disabled={loading} className="ion-margin-bottom">
-                                <IonLabel position="floating">Momo Options</IonLabel>
-                                <IonSelect onIonChange={(e) => changeOperator(e.detail.value!)} value={transaction.receiver_id}>
-                                    {
-                                        operators.map((operator, index) => {
-                                            return <IonSelectOption key={index} value={operator.code}>{operator.name}  </IonSelectOption>
-                                        })
-                                    }
-                                </IonSelect>
-                                {
-                                    transaction.receiver_photo && !loadingImage && <IonAvatar slot="end"><IonImg ref={imageRef} src={transaction.receiver_photo} /></IonAvatar>
-                                }
-                            </IonItem>
-                            <IonItem disabled={loading} className="ion-margin-bottom">
-                                <IonLabel position="floating">Receiver Phone number</IonLabel>
-                                <IonInput value={transaction.category} onIonChange={(e) => {
-                                    settransaction({ ...transaction, category: e.detail.value! })
+                                <IonLabel position="floating">Add Reason</IonLabel>
+                                <IonInput value={transaction.ref} onIonChange={(e) => {
+                                    settransaction({ ...transaction, ref: e.detail.value! })
                                 }}></IonInput>
                             </IonItem>
                             <br />
                             <br />
                             <IonToolbar className="ion-padding-horizontal">
                                 <IonButton disabled={loading} type="submit" expand='block'>
-                                    {!loading ? "Cash Out" : <IonSpinner></IonSpinner>}
+                                    {!loading ? "Send Money" : <IonSpinner></IonSpinner>}
                                 </IonButton>
                             </IonToolbar>
                         </div>
@@ -153,4 +169,4 @@ const CashinModal: React.FC<{ isOpen: boolean, onDidDismiss: () => void }> = ({ 
     )
 }
 
-export default CashinModal
+export default MoneyTransferModal

@@ -1,11 +1,15 @@
 import { IonAvatar, IonBackButton, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCol, IonContent, IonHeader, IonIcon, IonImg, IonLabel, IonList, IonPage, IonRouterLink, IonRow, IonTitle, IonToolbar } from '@ionic/react'
 import { chevronForward, closeOutline, happyOutline } from 'ionicons/icons'
 import React, { useState } from 'react'
+import { useSelector } from 'react-redux'
 import { useHistory } from 'react-router'
+import { User } from '../components/interfaces/@entities'
+import { selectUser } from '../components/States/User-state'
 import { photo } from './Summary'
 
 const NotificationDetail: React.FC = () => {
     const [reported, setreported] = useState(false)
+    const user:User = useSelector(selectUser)
 
     const history = useHistory()
 
@@ -18,7 +22,7 @@ const NotificationDetail: React.FC = () => {
                     </IonButtons>
                     <IonTitle>Notification Detail</IonTitle>
                         <IonAvatar onClick={()=>history.push("/profile")} className='dp-photo' slot="end">
-                            <IonImg src={photo}></IonImg>
+                            <IonImg src={user.photo}></IonImg>
                         </IonAvatar>
                 </IonToolbar>
             </IonHeader>

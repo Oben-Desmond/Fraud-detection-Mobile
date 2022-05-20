@@ -17,6 +17,7 @@ import { Geolocation } from "@capacitor/geolocation";
 import { useDispatch, useSelector } from 'react-redux'
 import { selectUser, updateUser } from '../components/States/User-state'
 import { UserStorage } from '../components/storageApi'
+import { localImages } from '../components/images/images'
 
 const initialUser: User = {
     email: 'obend678@gmail.com',
@@ -150,7 +151,7 @@ const SignUp: React.FC = ({ }) => {
                         setalertHeader("Sign in Successful")
                         alert(JSON.stringify(responseData))
                         if (responseData.status == 200) {
-                            dispatch(updateUser(user_val))
+                            dispatch(updateUser({...user_val,photo:user_val.photo||localImages.profilePlaceholder}))
                             UserStorage.setUser(user_val)
                             history.push("/summary")
 

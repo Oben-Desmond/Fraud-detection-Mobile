@@ -1,11 +1,9 @@
-import { IonAvatar, IonBackButton, IonButton, IonButtons, IonChip, IonCol, IonContent, IonGrid, IonHeader, IonIcon, IonImg, IonInput, IonItem, IonLabel, IonPage, IonRow, IonTitle, IonToolbar } from '@ionic/react'
+import { IonAvatar, IonBackButton, IonButton, IonButtons, IonChip, IonCol, IonContent, IonGrid, IonIcon, IonImg, IonInput, IonItem, IonLabel, IonPage, IonRow, IonTitle, IonToolbar } from '@ionic/react'
 import { calendarOutline, callOutline, cameraOutline, chevronForward, flagSharp, personOutline } from 'ionicons/icons'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router'
 import { User } from '../components/interfaces/@entities'
-import { updateUser } from '../components/States/User-state'
-import { UserStorage } from '../components/storageApi'
 import { photo } from './Summary'
 
 const Profile: React.FC = () => {

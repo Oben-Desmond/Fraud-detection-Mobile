@@ -5,8 +5,13 @@ import { photo } from './Summary';
 import './Notifications.css';
 import { useEffect } from 'react';
 import { useHistory } from 'react-router';
+import { useSelector } from 'react-redux';
+import { User } from '../components/interfaces/@entities';
+import { selectUser } from '../components/States/User-state';
 
 const Notifications: React.FC = () => {
+
+    const user: User = useSelector(selectUser)
 
     const history = useHistory();
 
@@ -49,7 +54,7 @@ const Notifications: React.FC = () => {
                     </IonButton>
                 </IonButtons>
                 <IonAvatar onClick={() => history.push("/profile")} className='dp-photo' slot="end">
-                    <IonImg src={photo}></IonImg>
+                    <IonImg src={user.photo}></IonImg>
                 </IonAvatar>
             </IonToolbar>
             <IonContent fullscreen>

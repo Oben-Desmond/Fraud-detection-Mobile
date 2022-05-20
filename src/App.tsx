@@ -48,6 +48,7 @@ import { User } from './components/interfaces/@entities';
 import { selectUser, updateUser } from './components/States/User-state';
 import { UserStorage } from './components/storageApi';
 import { useDispatch, useSelector } from 'react-redux';
+import { localImages } from './components/images/images';
 
 setupIonicReact();
 
@@ -66,7 +67,7 @@ const App: React.FC = () => {
       //get user info from storage
       UserStorage.getUser().then((user: User | null) => {
         if (user) {
-          dispatch(updateUser(user))
+          dispatch(updateUser({...user,photo:user.photo||localImages.profilePlaceholder}))
           return
         }
         else{
@@ -74,6 +75,14 @@ const App: React.FC = () => {
         }
       })
     }
+    // get user's location 
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(position => {
+        const { latitude, longitude } = position.coords
+        dispatch(updateUser({...user, lat: latitude+"", lng: longitude+""}))
+      })
+    }
+    
 
   }, [])
 
@@ -105,7 +114,7 @@ const App: React.FC = () => {
             </Route>
 
             <Route exact path="/">
-              <Redirect to="/signin" />
+              <Redirect to="/sign-in" />
             </Route>
           </IonRouterOutlet>
           <IonTabBar slot="bottom">

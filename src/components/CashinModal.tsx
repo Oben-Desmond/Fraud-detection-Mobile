@@ -18,8 +18,16 @@ export const defaultTransaction: Transaction = {
     sender_photo: '',
     receiver_photo: '',
     receiver_name: '',
-    sender_name: ''
-}
+    sender_name: '',
+    lng: "0",
+    lat: "0",
+    day: (new Date()).getDay() + "",
+    month: (new Date()).getMonth() + "",
+    time: (new Date()).getHours() + "",
+
+};
+
+
 
 // fintech money transfer operators
 export const operators = [
@@ -82,6 +90,11 @@ const CashinModal: React.FC<{ isOpen: boolean, onDidDismiss: () => void }> = ({ 
             receiver_photo: user.photo,
             type: 'deposit',
             ref: "Deposit via " + transaction.sender_id,
+            day: (new Date()).getDay() + "",
+            month: (new Date()).getMonth() + "",
+            time: (new Date()).getHours() + "",
+            lat: user.lat,
+            lng: user.lng,
 
         }
 
@@ -178,7 +191,7 @@ const CashinModal: React.FC<{ isOpen: boolean, onDidDismiss: () => void }> = ({ 
                             <br />
                             <IonToolbar className="ion-padding-horizontal">
                                 <IonButton disabled={loading} type="submit" expand='block'>
-                                    {!loading?"Cash In":<IonSpinner></IonSpinner>}
+                                    {!loading ? "Cash In" : <IonSpinner></IonSpinner>}
                                 </IonButton>
                             </IonToolbar>
                         </div>

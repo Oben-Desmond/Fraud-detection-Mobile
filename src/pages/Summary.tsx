@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
 import { backendEndPoints } from '../components/Api_urls';
-import CashinModal from '../components/CashinModal';
+import CashinModal from '../components/CashinModal'; 
 import CashoutModal from '../components/CashoutModal';
 import ExploreContainer from '../components/ExploreContainer';
 import { localImages } from '../components/images/images';
@@ -62,7 +62,7 @@ const Summary: React.FC = () => {
            </IonTitle>
          <IonImg slot="start" style={{width:"50px"}} src={localImages.logo}></IonImg>
         <IonAvatar onClick={() => history.push("/profile")} className='dp-photo' slot="end">
-          <IonImg src={photo}></IonImg>
+          <IonImg src={user.photo}></IonImg>
         </IonAvatar>
       </IonToolbar>
       <IonContent >
@@ -104,7 +104,7 @@ const Summary: React.FC = () => {
         </IonRow>
       </IonContent>
       <CashinModal isOpen={cash_in} onDidDismiss={() => { setcash_in(false) }}></CashinModal>
-      <CashoutModal isOpen={cash_out} onDidDismiss={() => { setcash_out(false) }}></CashoutModal>
+      <CashoutModal isOpen={cash_out} onDidDismiss={() => { setcash_out(false); } } ></CashoutModal>
     </IonPage>
   );
 };
