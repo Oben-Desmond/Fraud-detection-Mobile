@@ -1,17 +1,23 @@
-import { IonAvatar, IonButton, IonButtons, IonCol, IonContent, IonHeader, IonIcon, IonImg, IonItem, IonLabel, IonList, IonPage, IonRouterLink, IonRow, IonTitle, IonToolbar } from '@ionic/react';
+import { IonAvatar, IonButton, IonButtons, IonCol, IonContent, IonHeader, IonIcon, IonImg, IonItem, IonLabel, IonList, IonPage, IonProgressBar, IonRouterLink, IonRow, IonTitle, IonToolbar, useIonViewDidEnter } from '@ionic/react';
 import { callOutline, logoWhatsapp, mailOutline, peopleOutline, search } from 'ionicons/icons';
 import ExploreContainer from '../components/ExploreContainer';
-import { photo } from './Summary';
+import { convertAmount, photo } from './Summary';
 import './Notifications.css';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import { useSelector } from 'react-redux';
-import { User } from '../components/interfaces/@entities';
+import { Transaction, User } from '../components/interfaces/@entities';
 import { selectUser } from '../components/States/User-state';
+import axios from 'axios';
+import { backendEndPoints } from '../components/Api_urls';
 
 const Notifications: React.FC = () => {
 
     const user: User = useSelector(selectUser)
+    // transactions 
+    const [transactions, settransactions] = useState<Transaction[]>([])
+    // loading state
+    const [loading, setloading] = useState<boolean>(false)
 
     const history = useHistory();
 
@@ -41,7 +47,26 @@ const Notifications: React.FC = () => {
 
     useEffect(() => {
 
-    }, [])
+        if (user.email)
+            getAnormal();
+
+    }, [user])
+
+    useIonViewDidEnter(()=>{
+       getAnormal()
+    })
+    async function getAnormal() {
+        setloading(true)
+        await axios.post(backendEndPoints.anormal, { email: "obend678@gmail.com" })
+            .then(res => {
+                if (res.data.status == "200") {
+                    settransactions([...res.data.data])
+
+                }
+                console.log(res.data.data)
+            }).catch(err => alert(err))
+        setloading(false)
+    }
 
 
 
@@ -57,6 +82,9 @@ const Notifications: React.FC = () => {
                     <IonImg src={user.photo}></IonImg>
                 </IonAvatar>
             </IonToolbar>
+            {
+                loading && <IonProgressBar type="indeterminate" color="primary"></IonProgressBar>
+            }
             <IonContent fullscreen>
 
                 <IonRow>
@@ -67,9 +95,9 @@ const Notifications: React.FC = () => {
                         </IonToolbar>
                         <IonList>
                             {
-                                [1, 1, 1, 1, 1, 1].map((notif, index) => {
+                                transactions.map((notif, index) => {
                                     return (
-                                        <NotificationCard key={index}></NotificationCard>
+                                        <NotificationCard notification={notif} key={index}></NotificationCard>
                                     )
                                 })
                             }
@@ -86,13 +114,24 @@ const Notifications: React.FC = () => {
 export default Notifications;
 
 
-const NotificationCard: React.FC = () => {
+const NotificationCard: React.FC<{ notification: Transaction }> = ({ notification }) => {
+
+    const user: User = useSelector(selectUser)
+    const amount = convertAmount(notification.amount);
+    // name is name of other person
+    const name = notification.sender_id == user.email ? notification.receiver_name : notification.sender_name;
+    const photo = notification.sender_id == user.email ? notification.receiver_photo : notification.sender_photo;
+
     return (
-        <IonItem routerLink='/notifications/detail/1' button>
-            <IonIcon icon={peopleOutline} slot="start"></IonIcon>
+        <IonItem className="ion-padding-top ion-text-capitalize" routerLink='/notifications/detail/1' button>
+            <IonAvatar slot="start">
+                <IonImg src={photo}></IonImg>
+            </IonAvatar>
             <IonToolbar style={{ ['--background']: "transparent" }}>
-                <IonLabel><b>Was this you </b> - Food purchase</IonLabel>
-                <small>50,000 FCFA</small>
+                <IonLabel><b>{notification.type}</b> - {name}
+                    <br />
+                    <small style={{ color: "grey" }}> <i>{notification.ref}</i></small></IonLabel>
+                <small>{amount} FCFA</small>
             </IonToolbar>
             <small slot="end">2:00 pm</small>
         </IonItem>

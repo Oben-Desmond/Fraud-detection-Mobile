@@ -16,4 +16,6 @@ export const backendEndPoints={
     "transactions":url+"/api/transactions/", //requires email
     "balance":url+"/api/balance/", //requires email
     "record-transaction":url+"/api/record-transaction/", //requires email
+    "record-detect":url+"/api/record-transaction/detect", //requires transaction info
+    "anormal":url+"/api/anormal", //requires email
 }

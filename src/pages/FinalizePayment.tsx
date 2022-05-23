@@ -6,6 +6,7 @@ import { v4 as uuid4 } from "uuid"
 import { SignUpResponse, TemplateResponse } from '../components/interfaces/@api'
 import axios from 'axios'
 import { backendEndPoints } from '../components/Api_urls'
+import { getBalance } from '../components/CashoutModal'
 
 
 const transaction_categories = [
@@ -79,6 +80,24 @@ const FinalizePayment: React.FC<{ isOpen: boolean, onDidDismiss: () => void, rec
             time: (new Date()).getHours() + "",
             lat: client.lat,
             lng: client.lng,
+        }
+        try {
+            const acc_balance = await getBalance(client)
+            //verify difference between amount and acc_balance
+            if (acc_balance && (acc_balance < transactionDetail.amount)) {
+                alert("Insufficient funds. Left only "+acc_balance+"FCFA in your account")
+                return
+            }
+            else {
+                setloading(true)
+                const response = await axios.post(backendEndPoints.transactions, transactionDetail)
+                if (response.status === 200) {
+                    setloading(false)
+                    onDidDismiss()
+                }
+            }
+        } catch (err) {
+            alert(err)
         }
         try {
             //send transaction details to server

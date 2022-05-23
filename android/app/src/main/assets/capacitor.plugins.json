@@ -18,9 +18,5 @@
 	{
 		"pkg": "@capacitor/storage",
 		"classpath": "com.capacitorjs.plugins.storage.StoragePlugin"
-	},
-	{
-		"pkg": "capacitor-plugin-dynamsoft-barcode-reader",
-		"classpath": "com.dynamsoft.dbr.DBRPlugin"
 	}
 ]

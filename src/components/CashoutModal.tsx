@@ -4,6 +4,7 @@ import axios from 'axios';
 import { close } from 'ionicons/icons'
 import React, { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux';
+import { convertAmount } from '../pages/Summary';
 import { backendEndPoints } from './Api_urls';
 import { defaultTransaction, operators } from './CashinModal';
 import { Transaction, User } from './interfaces/@entities';
@@ -51,13 +52,37 @@ const CashinModal: React.FC<{ isOpen: boolean, onDidDismiss: () => void }> = ({ 
 
         }
 
+        try {
+            const acc_balance = await getBalance(user)
+            //verify difference between amount and acc_balance
+            if (acc_balance && (acc_balance < newTransaction.amount)) {
+                alert("Insufficient funds. Left only "+acc_balance+"FCFA in your account")
+                return
+            }
+            else {
+                // setloading(true)
+            //     const response = await axios.post(backendEndPoints.transactions, newTransaction)
+            //     if (response.status === 200) {
+            //         setloading(false)
+            //         onDidDismiss()
+            //     }
+            }
+        } catch (err) {
+            alert(err)
+            return
+        }
+
+
 
         setloading(true)
-        await axios.post(backendEndPoints["record-transaction"], {
+        await axios.post(backendEndPoints["record-detect"], {
             ...newTransaction
         }).then(res => {
             console.log(res)
-            alert("Successfully sent")
+            if (res.data.status === 200) {
+                res.data["safe"] === false && alert("You have insufficient funds")
+            }
+            alert(res.data.message)
 
         }
         ).catch(err => {
@@ -92,10 +117,8 @@ const CashinModal: React.FC<{ isOpen: boolean, onDidDismiss: () => void }> = ({ 
 
     }, [])
 
-    //verify if user exists from endpoint
-    function verifyUser(email: string) {
+    
 
-    }
 
     return (
         <IonModal swipeToClose mode="ios" className='cashin-modal' isOpen={isOpen} onDidDismiss={() => onDidDismiss()}>
@@ -154,3 +177,21 @@ const CashinModal: React.FC<{ isOpen: boolean, onDidDismiss: () => void }> = ({ 
 }
 
 export default CashinModal
+
+
+
+
+//get account balance
+export async function getBalance(user:User): Promise<number | null> {
+    return await axios.post(backendEndPoints.balance, { email: user.email }).then(res => {
+        if(res.data.status!=200){
+            alert(res.data.message)
+            return null
+        }
+        const formatedAmount: number = res.data.data
+        return (formatedAmount)
+    }).catch(err => {
+        console.log(err)
+        return null
+    })
+}

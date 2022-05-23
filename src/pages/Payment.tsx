@@ -103,7 +103,6 @@ const Payment: React.FC = () => {
   useEffect(() => {
     QrCode.toDataURL(user.email, (err, url) => {
       setqrCodeImage(url)
-
     })
   }, [])
 
@@ -168,9 +167,15 @@ const Payment: React.FC = () => {
       <MoneyTransferModal isOpen={sendMoney && !!receiverEmail} onDidDismiss={(success) => {
         setsendMoney(false);
         setreceiverEmail("");
+        
         if (success) {
           setpaymentDone(true)
         }
+        decodeQRFromVideoEl(vidRef.current!).then(res => {
+          console.log(res.data)
+          setreceiverEmail(res.data)
+          setsendMoney(true)
+        })
 
       }} email={receiverEmail}></MoneyTransferModal>
     </IonPage >

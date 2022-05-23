@@ -1,11 +1,11 @@
-import { IonAvatar, IonButton, IonButtons, IonChip, IonCol, IonContent, IonHeader, IonIcon, IonImg, IonItem, IonItemDivider, IonLabel, IonNote, IonPage, IonRefresher, IonRefresherContent, IonRouterLink, IonRow, IonTitle, IonToolbar } from '@ionic/react';
+import { IonAvatar, IonButton, IonButtons, IonChip, IonCol, IonContent, IonHeader, IonIcon, IonImg, IonItem, IonItemDivider, IonLabel, IonNote, IonPage, IonProgressBar, IonRefresher, IonRefresherContent, IonRouterLink, IonRow, IonTitle, IonToolbar, useIonViewDidEnter, useIonViewWillEnter } from '@ionic/react';
 import axios from 'axios';
-import { chevronDownCircleOutline, fastFood, search } from 'ionicons/icons';
+import { alert, chevronDownCircleOutline, fastFood, refresh, search } from 'ionicons/icons';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
 import { backendEndPoints } from '../components/Api_urls';
-import CashinModal from '../components/CashinModal'; 
+import CashinModal from '../components/CashinModal';
 import CashoutModal from '../components/CashoutModal';
 import ExploreContainer from '../components/ExploreContainer';
 import { localImages } from '../components/images/images';
@@ -30,37 +30,60 @@ const Summary: React.FC = () => {
   useEffect(() => {
     if (!user) {
       history.push('/signin')
+      return;
     }
 
-    setTimeout(() => {
-      axios.post(backendEndPoints.transactions, { email: user.email }).then(res => {
-        settransactions(res.data.data)
-      }).catch(err => {
-        console.log(err)
-      })
-      axios.post(backendEndPoints.balance, { email: user.email }).then(res => {
 
-        const formatedAmount = convertAmount(res.data.data)
-        setamount(formatedAmount)
-
-
-      }).catch(err => {
-        console.log(err)
-      })
-    }, 3000);
   }, [user])
 
+  useEffect(() => {
+
+
+    if (user) {
+      setLoading(true)
+      loadTransactions()
+    }
+
+  }, [user])
+
+
+  // load transactions
+  async function loadTransactions() {
+
+    await axios.post(backendEndPoints.transactions, { email: user.email }).then(res => {
+      settransactions(res.data.data)
+
+    }).catch(err => {
+      console.log(err)
+    })
+
+    await axios.post(backendEndPoints.balance, { email: user.email }).then(res => {
+
+      const formatedAmount = convertAmount(res.data.data)
+      setamount(formatedAmount)
+
+
+    }).catch(err => {
+      console.log(err)
+    })
+
+    setLoading(false)
+  }
+
+  useIonViewDidEnter(() => {
+    loadTransactions()
+  })
 
 
 
   return (
     <IonPage>
       <IonToolbar className="app-header">
-         
-           <IonTitle>
-             Secure Pay
-           </IonTitle>
-         <IonImg slot="start" style={{width:"50px"}} src={localImages.logo}></IonImg>
+
+        <IonTitle>
+          Secure Pay
+        </IonTitle>
+        <IonImg slot="start" style={{ width: "50px" }} src={localImages.logo}></IonImg>
         <IonAvatar onClick={() => history.push("/profile")} className='dp-photo' slot="end">
           <IonImg src={user.photo}></IonImg>
         </IonAvatar>
@@ -84,11 +107,19 @@ const Summary: React.FC = () => {
                   <IonButton onClick={() => { setcash_out(true) }} fill='solid' >Cash Out</IonButton>
                 </IonButtons>
               </IonToolbar>
+              {
+                loading ? <IonProgressBar type="indeterminate" color="primary"></IonProgressBar> : <></>
+              }
 
             </div>
             <IonToolbar>
               <IonItemDivider className='ion-margin-bottom'>
                 <IonLabel>Today's Transactions</IonLabel>
+                <IonButtons slot="end" onClick={() => loadTransactions()}>
+                  <IonButton>
+                    <IonIcon icon={refresh}></IonIcon>
+                  </IonButton>
+                </IonButtons>
               </IonItemDivider>
               {transactions.map((trans, index) => {
                 return (
@@ -103,8 +134,8 @@ const Summary: React.FC = () => {
           <IonCol></IonCol>
         </IonRow>
       </IonContent>
-      <CashinModal isOpen={cash_in} onDidDismiss={() => { setcash_in(false) }}></CashinModal>
-      <CashoutModal isOpen={cash_out} onDidDismiss={() => { setcash_out(false); } } ></CashoutModal>
+      <CashinModal isOpen={cash_in} onDidDismiss={() => { setcash_in(false); loadTransactions() }}></CashinModal>
+      <CashoutModal isOpen={cash_out} onDidDismiss={() => { setcash_out(false); loadTransactions() }} ></CashoutModal>
     </IonPage>
   );
 };
@@ -170,7 +201,7 @@ export function getColorFromIndex(index: number) {
 
 
 // convert amount to readable format
-function convertAmount(amount: number) {
+export function convertAmount(amount: number) {
   return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
@@ -202,4 +233,11 @@ function getTimeAgo(date: number) {
     return `${years} years ago`;
   }
 
-} 
+}
+
+function dispatch(arg0: any) {
+  throw new Error('Function not implemented.');
+}
+
+
+

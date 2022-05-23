@@ -1,8 +1,10 @@
 import { IonAvatar, IonBackButton, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCol, IonContent, IonHeader, IonIcon, IonImg, IonLabel, IonList, IonPage, IonRouterLink, IonRow, IonTitle, IonToolbar } from '@ionic/react'
+import axios from 'axios'
 import { chevronForward, closeOutline, happyOutline } from 'ionicons/icons'
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useHistory } from 'react-router'
+import { backendEndPoints } from '../components/Api_urls'
 import { User } from '../components/interfaces/@entities'
 import { selectUser } from '../components/States/User-state'
 import { photo } from './Summary'
@@ -12,6 +14,13 @@ const NotificationDetail: React.FC = () => {
     const user:User = useSelector(selectUser)
 
     const history = useHistory()
+
+    function  getAnormal(){
+        axios.post(backendEndPoints.anormal,{email:"obend678@gmail.com"})
+        .then(res=>{
+            console.log(res.data)
+        }).catch(err=>console.log(err))
+    }
 
     return (
         <IonPage>
@@ -35,6 +44,7 @@ const NotificationDetail: React.FC = () => {
                     <span slot='end'>2:00PM</span>
                 </IonToolbar>
                 <IonToolbar style={{ padding: "13px" }} >
+                    <IonButton onClick={() =>getAnormal()}>Anormal</IonButton>
                     {
                         [
                             { name: "Category", desc: "Transportation" },

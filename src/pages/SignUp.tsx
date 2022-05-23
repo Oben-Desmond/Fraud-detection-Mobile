@@ -308,7 +308,7 @@ async function GetCameraPhoto(vidRef: React.RefObject<HTMLVideoElement>, Capture
         alert("no vid ref")
         return ""
     }
-    if (info.platform == 'web') {
+    if (info.platform == 'web' || true) {
         // capature image from webcam
         //request camera permissions
         return new Promise<string>((resolve, reject) => {

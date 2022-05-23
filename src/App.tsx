@@ -63,28 +63,37 @@ const App: React.FC = () => {
 
   useEffect(() => {
 
+
     if (!user.email) {
-      //get user info from storage
-      UserStorage.getUser().then((user: User | null) => {
-        if (user) {
-          dispatch(updateUser({...user,photo:user.photo||localImages.profilePlaceholder}))
-          return
-        }
-        else{
-           history.push('/signin')
-        }
-      })
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          const { latitude, longitude } = position.coords
+          //get user info from storage
+          UserStorage.getUser().then((user: User | null) => {
+            if (user) {
+              dispatch(updateUser({ ...user, photo: user.photo || localImages.profilePlaceholder, lat: latitude + "", lng: longitude + "" }))
+
+              return
+            }
+            else {
+              history.push('/sign-in')
+            }
+          })
+        })
+      }
+
     }
-    // get user's location 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(position => {
-        const { latitude, longitude } = position.coords
-        dispatch(updateUser({...user, lat: latitude+"", lng: longitude+""}))
-      })
-    }
-    
+
+
+
 
   }, [])
+
+  useEffect(() => {
+
+
+  }, [])
+
 
 
   return (

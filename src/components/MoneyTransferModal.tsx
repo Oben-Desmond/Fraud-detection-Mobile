@@ -101,7 +101,6 @@ const MoneyTransferModal: React.FC<{ isOpen: boolean, onDidDismiss: (success: bo
         setloading(false)
         // clear form from ev 
         setamount("")
-        settransaction(defaultTransaction)
 
 
     }
@@ -117,7 +116,10 @@ const MoneyTransferModal: React.FC<{ isOpen: boolean, onDidDismiss: (success: bo
             const receiver = response.data.data;
             // setreceiverInfo(receiver)
             setreceiverInfo(receiver)
-
+        }
+        else{
+            alert("User does not Exist with that QR Code!")
+            onDidDismiss(null)
         }
 
     }
