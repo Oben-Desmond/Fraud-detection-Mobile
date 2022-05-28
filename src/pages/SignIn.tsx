@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useHistory } from 'react-router'
 import { backendEndPoints } from '../components/Api_urls'
+import { playAudio } from '../components/audio/audio'
 import { localImages } from '../components/images/images'
 import { TemplateResponse } from '../components/interfaces/@api'
 import { updateUser } from '../components/States/User-state'
@@ -55,7 +56,8 @@ const SignIn: React.FC = ({ }) => {
                             setLoading(false)
                             //save user data locally
                             UserStorage.setUser(data.data)
-                            history.push('/summary')
+                            window.location.href=('/summary')
+                            playAudio()
 
                         }
                         else {
@@ -152,7 +154,7 @@ const SignIn: React.FC = ({ }) => {
                                             <IonLabel slot="end">Forgot Password</IonLabel>
                                         </IonItem>
                                         <IonToolbar className="ion-text-center">
-                                            <IonButton type="submit" fill="solid" color="primary">Sign Up</IonButton>
+                                            <IonButton type="submit" fill="solid" color="primary">Sign In</IonButton>
                                         </IonToolbar>
                                     </IonCardContent>
                                 </IonCard>

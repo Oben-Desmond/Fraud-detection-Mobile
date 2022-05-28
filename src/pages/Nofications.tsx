@@ -1,5 +1,5 @@
 import { IonAvatar, IonButton, IonButtons, IonCol, IonContent, IonHeader, IonIcon, IonImg, IonItem, IonLabel, IonList, IonPage, IonProgressBar, IonRouterLink, IonRow, IonTitle, IonToolbar, useIonViewDidEnter } from '@ionic/react';
-import { callOutline, logoWhatsapp, mailOutline, peopleOutline, search } from 'ionicons/icons';
+import { callOutline, logoWhatsapp, mailOutline, notificationsOutline, peopleOutline, refresh, search } from 'ionicons/icons';
 import ExploreContainer from '../components/ExploreContainer';
 import { convertAmount, photo } from './Summary';
 import './Notifications.css';
@@ -52,19 +52,17 @@ const Notifications: React.FC = () => {
 
     }, [user])
 
-    useIonViewDidEnter(()=>{
-       getAnormal()
-    })
+
     async function getAnormal() {
         setloading(true)
-        await axios.post(backendEndPoints.anormal, { email: "obend678@gmail.com" })
+        await axios.post(backendEndPoints.anormal, { email: user.email })
             .then(res => {
                 if (res.data.status == "200") {
                     settransactions([...res.data.data])
 
                 }
                 console.log(res.data.data)
-            }).catch(err => alert(err))
+            }).catch(err => console.log(err))
         setloading(false)
     }
 
@@ -92,6 +90,11 @@ const Notifications: React.FC = () => {
                     <IonCol size="12" sizeMd="6" sizeLg="5">
                         <IonToolbar>
                             <IonTitle>Notifications</IonTitle>
+                            <IonButtons slot="end">
+                                <IonButton onClick={() => getAnormal()}>
+                                    <IonIcon icon={refresh}></IonIcon>
+                                </IonButton>
+                            </IonButtons>
                         </IonToolbar>
                         <IonList>
                             {
@@ -100,6 +103,17 @@ const Notifications: React.FC = () => {
                                         <NotificationCard notification={notif} key={index}></NotificationCard>
                                     )
                                 })
+                            }
+                            
+                            {
+                                transactions.length <= 0 && !loading && <>
+                                <div style={{height:"35vh"}}></div>
+                                <div className='ion-text-center' >
+                                    <div style={{transform:"scale(2)"}}>
+                                        <IonIcon color="primary" icon={notificationsOutline} className="ion-margin-end"></IonIcon>
+                                        <IonLabel color="medium">No Notifications</IonLabel>
+                                    </div>
+                                </div ></>
                             }
                         </IonList>
                     </IonCol>

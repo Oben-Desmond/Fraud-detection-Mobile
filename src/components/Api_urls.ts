@@ -18,4 +18,7 @@ export const backendEndPoints={
     "record-transaction":url+"/api/record-transaction/", //requires email
     "record-detect":url+"/api/record-transaction/detect", //requires transaction info
     "anormal":url+"/api/anormal", //requires email
+    "report":url+"/api/report", //report info
+    "get-reports":url+"/api/get-reports", //get reports
+    "get-admin-summary":url+"/api/admin/summary", //get reports
 }

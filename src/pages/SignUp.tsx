@@ -11,7 +11,7 @@ import { useHistory } from 'react-router'
 import { faceapi } from '../Ai/faceApi';
 import FaceComparison from './FaceComparison'
 import { Dialog } from "@capacitor/dialog";
-import { auth, storage } from '../firebase'
+import { auth, fstore, storage } from '../firebase'
 import { getMinGeolocationData } from '../components/geolocation'
 import { Geolocation } from "@capacitor/geolocation";
 import { useDispatch, useSelector } from 'react-redux'
@@ -31,7 +31,7 @@ const initialUser: User = {
     created_at: Date.now(),
     photo: "",
     id_front: "",
-    id_back: ""
+    id_back: "",
 }
 
 
@@ -120,13 +120,50 @@ const SignUp: React.FC = ({ }) => {
 
     }
 
-    async function submitUserData(distance: number) {
+    async function submitUserData(distance: number, image: Blob | null) {
         const user_val = user;
         if (distance > 0.48) {
             Dialog.alert({ message: "Facial recognition does not match that of Id card", title: "Invalid id" })
-            return
+            // if distance between front id and user facial recognition close
+           
+                let imageDocs = []
+                try {
+                    imageDocs = (await fstore.collection("users").doc(user.email).collection("images").get()).docs.map(doc => doc.data().url)
+                } catch (err) {
+
+                }
+                try {
+                    let distance = 1;
+                    if (imageDocs.length > 0 && image) {
+                        distance = await compareFileImageWithImages(new File([image], "image-file"+Date.now(),), imageDocs)
+                    }
+                    alert(distance)
+                    //checks distance
+                    if (distance > 0.5) {
+                        alert("Face does not match user profile")
+                        return
+                    }
+                } catch (err) {
+                    alert(err)
+                    return;
+                }
+         
         }
 
+        try {
+            if (image) {
+                const imageRef = storage.ref("faces").child(user.email).child(Date.now() + ".png")
+                await imageRef.put(image).then(res => {
+                    res.ref.getDownloadURL().then(url => {
+                        fstore.collection("users").doc(user.email).collection("images").add({ url })
+                    })
+                })
+
+            }
+        }
+        catch (err) {
+            console.log(err)
+        }
         settoastMessage("Your Face matches Id Card");
 
         setloading(true)
@@ -145,15 +182,15 @@ const SignUp: React.FC = ({ }) => {
                     user_val.id_back = url_1
                     console.log(user_val)
 
-                    return  axios.post(backendEndPoints.sign_up, user).then(res => {
+                    return axios.post(backendEndPoints.sign_up, user).then(res => {
                         const responseData: SignUpResponse = res.data
                         setAlertMessage("Successfully Created your Account")
                         setalertHeader("Sign in Successful")
                         alert(JSON.stringify(responseData))
                         if (responseData.status == 200) {
-                            dispatch(updateUser({...user_val,photo:user_val.photo||localImages.profilePlaceholder}))
+                            dispatch(updateUser({ ...user_val, photo: user_val.photo || localImages.profilePlaceholder }))
                             UserStorage.setUser(user_val)
-                            history.push("/summary")
+                            window.location.href = ('/summary')
 
                         }
 
@@ -252,7 +289,7 @@ const SignUp: React.FC = ({ }) => {
                         </IonCol>
                         <IonCol></IonCol>
                     </IonRow>
-                    {frontFile && <CameraModal isOpen={showWebcam} onDidDismiss={(distance) => { setshowWebcam(false); distance != null && submitUserData(distance) }}
+                    {frontFile && <CameraModal isOpen={showWebcam} onDidDismiss={(distance, image) => { setshowWebcam(false); distance != null && submitUserData(distance, image) }}
                         frontId={frontFile}
                     ></CameraModal>}
 
@@ -296,7 +333,7 @@ const openImagePicker = (callBack: (result: string) => void, callBack2: (result:
 
 
 
-async function GetCameraPhoto(vidRef: React.RefObject<HTMLVideoElement>, CaptureButton: React.RefObject<HTMLIonFabButtonElement>, frontId: File, callBack: (distance: number) => void): Promise<string> {
+export async function GetCameraPhoto(vidRef: React.RefObject<HTMLVideoElement>, CaptureButton: React.RefObject<HTMLIonFabButtonElement>, frontId: File, callBack: (distance: number, image: Blob | null) => void): Promise<string> {
 
     const loadingEl = document.createElement("ion-loading")
     loadingEl.message = "Please wait..."
@@ -333,8 +370,6 @@ async function GetCameraPhoto(vidRef: React.RefObject<HTMLVideoElement>, Capture
                 CaptureButton.current?.addEventListener('click', async () => {
                     loadingEl.present()
 
-                    //capture image
-                    context.drawImage(vidRef.current!, 0, 0, canvas.width, canvas.height)
 
                     const detection = await faceapi.detectSingleFace(vidRef.current!).withFaceLandmarks().withFaceDescriptor()
                     if (detection) {
@@ -344,15 +379,44 @@ async function GetCameraPhoto(vidRef: React.RefObject<HTMLVideoElement>, Capture
                         if (fronimageDescriptor.length > 0) {
                             //find distance between front image id and captured image id
                             const distance = faceapi.euclideanDistance(faceDescriptor, fronimageDescriptor)
-                            callBack(distance)
+
+
+                            //create canvas element
+                            const canvas = document.createElement('canvas')
+                            const context = canvas.getContext('2d')
+                            if (!context || !vidRef.current) {
+                                callBack(distance, null)
+                                return;
+                            }
+                            context.drawImage(vidRef.current, 0, 0,canvas.width, canvas.height);
+                            var data = canvas.toDataURL('image/png');
+                            // photo.setAttribute('src', data);
+                            try {
+                                const blob = await fetch(data).then(async (res) => {
+                                    const blob = await res.blob()
+                                    if (blob) {
+                                        return blob
+                                    }
+                                    return null;
+                                });
+                                callBack(distance, blob)
+
+                            } catch (err) {
+                                console.log(err)
+                                callBack(distance, null)
+                            }
+
 
                         }
+
 
                     }
                     else {
                         Dialog.alert({ message: "No face detected", title: "Facial Recognition Error" })
-                        callBack(1);
+                        callBack(1, null);
                     }
+
+
 
                     stream.getTracks().forEach(track => track.stop())
                     loadingEl.dismiss()
@@ -375,30 +439,33 @@ async function GetCameraPhoto(vidRef: React.RefObject<HTMLVideoElement>, Capture
 }
 
 
-const CameraModal: React.FC<{ isOpen: boolean, onDidDismiss: (distance: number | null) => void, frontId: File }> = ({ isOpen, onDidDismiss, frontId }) => {
+export const CameraModal: React.FC<{ isOpen: boolean, onDidDismiss: (distance: number | null, image: Blob | null) => void, frontId: File }> = ({ isOpen, onDidDismiss, frontId }) => {
 
     const vidRef = useRef(null)
     const captureBtn = useRef<HTMLIonFabButtonElement>(null)
+    const user: User = useSelector(selectUser)
 
-    const intializeCamera = function () {
-        const value = GetCameraPhoto(vidRef, captureBtn, frontId, (d) => onDidDismiss(d))
+    const intializeCamera = async function () {
+
+
+        const value = GetCameraPhoto(vidRef, captureBtn, frontId, (d, image) => onDidDismiss(d, image))
         value.then(res => {
             console.log(res)
         })
     }
 
     function closeCameraModal() {
-        onDidDismiss(null)
+        onDidDismiss(null, null)
     }
 
 
     return (
-        <IonModal onDidDismiss={() => onDidDismiss(null)} isOpen={isOpen} onDidPresent={() => { intializeCamera() }} >
+        <IonModal onDidDismiss={() => onDidDismiss(null, null)} isOpen={isOpen} onDidPresent={() => { intializeCamera() }} >
 
             <IonHeader>
                 <IonToolbar>
                     <IonButtons slot='start'>
-                        <IonButton onClick={() => onDidDismiss(null)}>
+                        <IonButton onClick={() => onDidDismiss(null, null)}>
                             <IonIcon icon={chevronBack}></IonIcon>
                             <IonLabel>Cancel</IonLabel>
                         </IonButton>
@@ -417,4 +484,8 @@ const CameraModal: React.FC<{ isOpen: boolean, onDidDismiss: (distance: number |
     )
 }
 
+
+function compareFileImageWithImages(arg0: File, imageDocs: any[]): number | PromiseLike<number> {
+    throw new Error('Function not implemented.')
+}
 

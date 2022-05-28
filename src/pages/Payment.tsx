@@ -49,7 +49,7 @@ const Payment: React.FC = () => {
     password: "",
   };
 
-  
+
 
   // get video feed from camera
   const getVideo = async () => {
@@ -69,6 +69,8 @@ const Payment: React.FC = () => {
       console.log(res.data)
       setreceiverEmail(res.data)
       setsendMoney(true)
+      
+
     })
   }
   // stop video feed
@@ -94,7 +96,7 @@ const Payment: React.FC = () => {
       stopVideo()
     }
 
-    
+
     return () => {
       stopVideo()
     }
@@ -153,7 +155,7 @@ const Payment: React.FC = () => {
                   </h2>
                 </div>
                 <IonToolbar>
-                  <IonButton onClick={() =>{ setpaymentDone(false); settransferType("receive")}} style={{ margin: "auto" }} color="dark">Initiate New Transaction</IonButton>
+                  <IonButton onClick={() => { setpaymentDone(false); settransferType("receive") }} style={{ margin: "auto" }} color="dark">Initiate New Transaction</IonButton>
                 </IonToolbar>
               </div>
             }
@@ -167,7 +169,7 @@ const Payment: React.FC = () => {
       <MoneyTransferModal isOpen={sendMoney && !!receiverEmail} onDidDismiss={(success) => {
         setsendMoney(false);
         setreceiverEmail("");
-        
+
         if (success) {
           setpaymentDone(true)
         }

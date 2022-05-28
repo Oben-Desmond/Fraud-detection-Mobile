@@ -1,6 +1,6 @@
 import { IonAvatar, IonButton, IonButtons, IonChip, IonCol, IonContent, IonHeader, IonIcon, IonImg, IonItem, IonItemDivider, IonLabel, IonNote, IonPage, IonProgressBar, IonRefresher, IonRefresherContent, IonRouterLink, IonRow, IonTitle, IonToolbar, useIonViewDidEnter, useIonViewWillEnter } from '@ionic/react';
 import axios from 'axios';
-import { alert, chevronDownCircleOutline, fastFood, refresh, search } from 'ionicons/icons';
+import { alert, cashOutline, chevronDownCircleOutline, fastFood, notificationsOutline, refresh, search } from 'ionicons/icons';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
@@ -71,7 +71,7 @@ const Summary: React.FC = () => {
   }
 
   useIonViewDidEnter(() => {
-    loadTransactions()
+    // loadTransactions()
   })
 
 
@@ -128,6 +128,15 @@ const Summary: React.FC = () => {
               })
 
               }
+
+              { transactions.length<=0 && !loading && <>
+                <div style={{ height: "30vh" }}></div>
+                <div className='ion-text-center' >
+                  <div style={{ transform: "scale(2)" }}>
+                    <IonIcon color="primary" icon={cashOutline} className="ion-margin-end"></IonIcon>
+                    <IonLabel color="medium">No Transactions Yet</IonLabel>
+                  </div>
+                </div ></>}
             </IonToolbar>
 
           </IonCol>
@@ -149,6 +158,8 @@ const TransactionSummaryCard: React.FC<{ index: number, transaction: Transaction
   const [transactionName, settransactionName] = useState("")
   const [amountField, setamountField] = useState(<></>)
   const [date, setdate] = useState("")
+
+  const history = useHistory()
 
   const user: User = useSelector(selectUser)
 
@@ -174,9 +185,12 @@ const TransactionSummaryCard: React.FC<{ index: number, transaction: Transaction
     setdate(getTimeAgo(created_at))
   }, [])
 
+  function openTransactionDetail(){
+    history.push('/notifications/detail/1',{...transaction, amount, receiver_name, receiver_id, sender_id, receiver_photo, sender_photo, sender_name, type, created_at  });
+  }
 
   return (
-    <IonItem routerLink='/notifications/detail/1' button lines="none" className="trans-card" >
+    <IonItem onClick={openTransactionDetail} button lines="none" className="trans-card" >
       <IonAvatar slot="start">
         <IonImg src={photo}></IonImg>
       </IonAvatar>

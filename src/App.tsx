@@ -49,6 +49,7 @@ import { selectUser, updateUser } from './components/States/User-state';
 import { UserStorage } from './components/storageApi';
 import { useDispatch, useSelector } from 'react-redux';
 import { localImages } from './components/images/images';
+import Admin from './pages/Admin';
 
 setupIonicReact();
 
@@ -145,6 +146,9 @@ const App: React.FC = () => {
             </IonTabButton>
           </IonTabBar>
         </IonTabs>
+        <Route exact path="/admin">
+          <Admin />
+        </Route>
         <Route path="/sign-in">
           <SignIn />
         </Route>

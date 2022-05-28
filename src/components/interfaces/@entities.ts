@@ -36,3 +36,18 @@ export interface Transaction{
     time:string
 
 }
+
+
+
+export interface Reported{
+     
+    amount : number;
+    created_at: number;
+    reported_at: number;
+    reporter : string;
+    reported : string;
+    type : string;
+    lng : string;
+    lat : string;
+    transaction_id : string|number;
+}

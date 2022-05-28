@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { auth } from '../firebase'
 import { backendEndPoints } from './Api_urls'
+import { playAudio } from './audio/audio'
 import { Transaction, User } from './interfaces/@entities'
 import { selectUser } from './States/User-state'
 export const defaultTransaction: Transaction = {
@@ -103,10 +104,12 @@ const CashinModal: React.FC<{ isOpen: boolean, onDidDismiss: () => void }> = ({ 
             ...newTransaction
         }).then(res => {
             console.log(res)
-            alert("Successfully sent")
             // clear form
             settransaction(defaultTransaction)
             setamount("")
+            playAudio()
+            alert("Successfully sent")
+            onDidDismiss()
 
         }
         ).catch(err => {
@@ -158,7 +161,7 @@ const CashinModal: React.FC<{ isOpen: boolean, onDidDismiss: () => void }> = ({ 
                 </IonToolbar>
             </IonHeader>
             <IonContent>
-
+                
                 <IonCardContent>
                     <form onSubmit={initiateTransaction}>
                         <div className="ion-padding">
